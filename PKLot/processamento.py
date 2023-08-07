@@ -35,4 +35,4 @@ end_time = time.time()
 elapsed_time = end_time - start_time
 hours, remainder = divmod(elapsed_time, 3600)
 minutes, seconds = divmod(remainder, 60)
-print(f"\n\nTempo: {int(hours)} horas {int(minutes)} minutos and {seconds:.2f} segundos")
+print(f"\n\nTempo: {int(hours)} horas {int(minutes)} minutos e {seconds:.2f} segundos")
