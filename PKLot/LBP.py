@@ -39,10 +39,24 @@ class LocalBinaryPattern:
             val += val_ar[i] * val_exp[i]
         return val
 
-    def LBP(self, csv_treino, csv_teste):
-        train_hist = []
-        test_hist = []
-        
+    def LBP(self, diretorio, val_class):
+        histograms = []
+        for imagem in paths.list_images(diretorio):
+            img = cv2.imread(imagem)
+            gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            height, width = gray_img.shape
+            #gera uma imagem de mesma proporção com 0 em todos os pixels (imagem preta)
+            lbp_img = np.zeros((height, width), np.uint8)
+            #preenche a imagem com os mumeros gerados pelo calculo lbp
+            for i in range (height):
+                for j in range (width):
+                    lbp_img[i, j] = self.calculoLBP(gray_img, i, j)
+            #calculo do histograma
+            hist = cv2.calcHist([lbp_img], [0], None, [256], [0, 256])
+            histograms.append([val_class] + np.ravel(hist).tolist())
+        return histograms
+    
+    def PKLotLBP(self, csv_treino, csv_teste, diretorio):
         header = []
         header.append("Classe")
         for i in range (256):
@@ -55,40 +69,31 @@ class LocalBinaryPattern:
         teste = csv.writer(file_teste)
         teste.writerow(header)
 
-        for estacionamento in os.listdir(self.Imagens):
-            print("\nEstacionamento: ", estacionamento)
-            diretorioEst = os.path.join(self.Imagens, estacionamento)
-            
-            for tempo in os.listdir(diretorioEst):
-                print("Condicao do Tempo: ", tempo)
-                diretorioTemp = os.path.join(diretorioEst, tempo)
-                histograms = []
-                
-                for dia in os.listdir(diretorioTemp): 
-                    diretorioDia = os.path.join(diretorioTemp, dia)
-                    
-                    for classe in os.listdir(diretorioDia):
-                        diretorioClasse = os.path.join(diretorioDia, classe)
-                        if (classe.lower() == "empty"):
-                            val_class = 0
-                        elif (classe.lower() == "occupied"):
-                            val_class = 1
-                        
-                        for imagem in paths.list_images(diretorioClasse):
-                            img = cv2.imread(imagem)
-                            gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-                            height, width = gray_img.shape
-                            #gera uma imagem de mesma proporção com 0 em todos os pixels (imagem preta)
-                            lbp_img = np.zeros((height, width), np.uint8)
-                            #preenche a imagem com os mumeros gerados pelo calculo lbp
-                            for i in range (height):
-                                for j in range (width):
-                                    lbp_img[i, j] = self.calculoLBP(gray_img, i, j)
-                            #calculo do histograma
-                            hist = cv2.calcHist([lbp_img], [0], None, [256], [0, 256])
-                            histograms.append([val_class] + np.ravel(hist).tolist())
-                hist1, hist2 = np.array_split(histograms, 2)
-                for hists1 in hist1:
-                    treino.writerow(hists1)
-                for hists2 in hist2:
-                    teste.writerow(hists2)
+        histograms = []
+        for classe in os.listdir(diretorio):
+            diretorioClasse = os.path.join(diretorio, classe)
+            if (classe.lower() == "empty"):
+                val_class = 0
+            elif (classe.lower() == "occupied"):
+                val_class = 1
+            histograms += self.LBP(diretorioClasse, val_class)
+        
+        hist1, hist2 = np.array_split(histograms, 2)
+        for hists1 in hist1:
+            treino.writerow(hists1)
+        for hists2 in hist2:
+            teste.writerow(hists2)
+        
+        file_treino.close()
+        file_teste.close()
+        
+        file_treino = open(csv_treino, 'r')
+        linhas = file_treino.readlines()
+        print("\n\ttreino: ", len(linhas)-1)
+        file_treino.close()
+        
+        file_teste = open(csv_teste, 'r')
+        linhas = file_teste.readlines()
+        print("\tteste: ", len(linhas)-1)
+        file_teste.close()
+        

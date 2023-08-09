@@ -48,12 +48,8 @@ class KNearstNeighbors:
         return predicts
 
     def KNN(self, csv_train, csv_test):
-        print("Carregando arquivo de treino")
         train = np.loadtxt(csv_train, delimiter=',', skiprows=1)
-        print("Arquivo carregado\n")
-        print("Carregando arquivo de teste")
         test = np.loadtxt(csv_test, delimiter=',', skiprows=1)
-        print("Arquivo carregado\n")
 
         X_train = train[:, 1:]
         y_train = train[:, 0]
@@ -66,16 +62,13 @@ class KNearstNeighbors:
         for i in range (X_train.shape[1]):
             self.scalingCols(i)
 
-        print("Conjunto de treino: ", len(X_train))
-        print("Conjunto de teste: ", len(X_test))
-
-        print("\nRealizando previsoes")
         predicts = self.predict()
-        print("Previsoes feitas\n")
 
         #compara as previsoes de cada teste com o conjunto y_test (gabarito)
         accuracy = np.mean(predicts == y_test)
-        print("Accuracy: ", accuracy)    
+        print("\t\tAccuracy: ", accuracy)    
 
         f1 = f1_score(y_test, predicts, average='weighted')
-        print("F1 Score: ", f1)
+        print("\t\tF1 Score: ", f1)
+
+        return accuracy, f1
