@@ -69,16 +69,23 @@ class LocalBinaryPattern:
         teste = csv.writer(file_teste)
         teste.writerow(header)
 
-        histograms = []
-        for classe in os.listdir(diretorio):
-            diretorioClasse = os.path.join(diretorio, classe)
-            if (classe.lower() == "empty"):
-                val_class = 0
-            elif (classe.lower() == "occupied"):
-                val_class = 1
-            histograms += self.LBP(diretorioClasse, val_class)
-        
-        hist1, hist2 = np.array_split(histograms, 2)
+        hist1 = []
+        hist2 = []
+        contador = 0
+        for dia in os.listdir(diretorio):
+            diretorioDia = os.path.join(diretorio, dia)    
+            for classe in os.listdir(diretorioDia):
+                diretorioClasse = os.path.join(diretorioDia, classe)
+                if (classe.lower() == "empty"):
+                    val_class = 0
+                elif (classe.lower() == "occupied"):
+                    val_class = 1
+                if (contador % 2 == 0):
+                    hist1 += self.LBP(diretorioClasse, val_class)
+                else:
+                    hist2 += self.LBP(diretorioClasse, val_class)
+            contador += 1
+
         for hists1 in hist1:
             treino.writerow(hists1)
         for hists2 in hist2:
