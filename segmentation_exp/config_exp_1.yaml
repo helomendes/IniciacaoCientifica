@@ -1,2 +1,2 @@
-images_dir: '/home/hbm22/Pictures/Biopsy/'
-destination_dir: '/home/hbm22/Pictures/Experiments/'
+images_dir: '/home/hbm22/hmmetria/images/'
+destination_dir: '/home/hbm22/experiments/'

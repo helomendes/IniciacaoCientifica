@@ -1,8 +1,8 @@
-import cv2
 import numpy as np
+import cv2
 
-dest="/home/hbm22/Pictures/Experiments/"
-img = cv2.imread("/home/hbm22/Pictures/Biopsy/BO097Osteoide2.PNG")
+dest="/home/hbm22/Experiments/"
+img = cv2.imread("/home/hbm22/hmmetria/images/BO097Osteoide2.PNG")
 cv2.imwrite(f'{dest}org.jpg', img)
 hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 cv2.imwrite(f'{dest}hsv.jpg', hsv)
