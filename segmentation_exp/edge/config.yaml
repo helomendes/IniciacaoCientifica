@@ -1,0 +1,4 @@
+images_dir: '/home/hbm22/Pictures/Biopsy'
+  #images_dir: '/home/hbm22/Pictures/Experiments/flower'
+dest_dir: '/home/hbm22/Experiments/12_11_2024'
+  #dest_dir: '/home/hbm22/Experiments/11_11_2024/amostras'
