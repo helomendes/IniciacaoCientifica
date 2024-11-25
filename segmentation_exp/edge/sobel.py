@@ -9,6 +9,7 @@ from glob import glob
 class Image:
     def __init__(self, img):
         self.original = img
+        self.rgb = cv.cvtColor(img, cv.COLOR_BGR2RGB)
         self.gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
         self.blur = cv.GaussianBlur(self.gray, (3,3), 0) 
         
@@ -55,7 +56,7 @@ class Image:
         plt.figure(figsize=(15,10))
 
         plt.subplot(3,3,1)
-        plt.imshow(self.original)
+        plt.imshow(self.rgb)
         plt.title('Original Image')
         plt.axis('off')
 
