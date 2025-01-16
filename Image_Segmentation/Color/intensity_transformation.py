@@ -59,8 +59,8 @@ for image in imgs:
         plt.title(titles[i])
         plt.xticks([])
         plt.yticks([])
-    plt.show()
-
+    #plt.show()
+    plt.savefig(f'{dest_dir}/logtransform_{img_name}.jpg')
     '''
 
     ##### POWER-LAW (GAMMA) TRANSFORMATION ######
@@ -80,6 +80,7 @@ for image in imgs:
         plt.imshow(gamma_corrected, plt.cm.gray)
         plt.title(f'Gamma {gamma}')
         plt.axis('off')
-    plt.show()
+    #plt.show()
+    plt.savefig(f'{dest_dir}/gammatransform_{img_name}.jpg')
 
     '''

@@ -16,7 +16,7 @@ with open(args.config, 'r') as file:
 imgs_dir = os.path.abspath(config.get('images_dir')) + '/'
 dest_dir = os.path.abspath(config.get('destination_dir')) + '/'
 
-color = np.uint8([[[112, 127, 174]]])
+color = np.uint8([[config.get('color')]])
 hsv_color = cv.cvtColor(color, cv.COLOR_BGR2HSV)
 frst = hsv_color[0][0][0]
 hsv_lower = np.array([frst - 5, 100, 150])
@@ -53,6 +53,6 @@ for image in imgs:
     cv.waitKey()
     if asw == 'y' or asw == 'Y':
         today = datetime.now()
-        save_dir = f'/home/hbm22/hmmetria/experiments/{today.strftime("%Y_%m_%d")}/{code}'
+        save_dir = f'{dest_dir}/{code}'
         os.makedirs(save_dir, exist_ok=True)
         cv.imwrite(f'{save_dir}/{img_name}.jpg', numpy_vertical)

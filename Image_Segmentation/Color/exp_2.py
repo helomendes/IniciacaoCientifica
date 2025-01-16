@@ -1,6 +1,6 @@
 import skimage as ski
 import os
-import matplotli.pyplot as plt
+import matplotlib.pyplot as plt
 
 def main():
     camera = ski.data.camera() 
