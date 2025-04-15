@@ -1,9 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.ndimage as nd
-from skimage.feature import canny, sobel
+from skimage.feature import canny
+from skimage.filters import sobel
 from skimage import data, morphology
 from skimage.color import rgb2gray
+from skimage.segmentation import watershed
 
 def main():
     plt.rcParams["figure.figsize"] = (12,8)
@@ -28,7 +30,7 @@ def main():
     plt.imshow(markers)
     plt.title('markers')
 
-    segmentation = morphology.watershed(elevation_map, markers)
+    segmentation = watershed(elevation_map, markers)
 
     plt.imshow(segmentation)
     plt.title('watershed segmentation')

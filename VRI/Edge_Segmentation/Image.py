@@ -12,6 +12,7 @@ class Image:
     def saveFig(self, name, alg):
         plt.figure(figsize=(15,10))
 
+        '''
         plt.subplot(3,3,1)
         plt.imshow(self.rgb)
         plt.title('Original Image')
@@ -21,13 +22,17 @@ class Image:
         plt.imshow(self.gray, cmap='gray')
         plt.title('Gray Image')
         plt.axis('off')
+        '''
 
-        i = 4 
-        for method in ("sobel", "canny", "laplacian", "prewitt", "robertsCross", "scharr"):
-            plt.subplot(3,3,i)
-            attr = getattr(alg, method)
-            plt.imshow(attr, cmap='gray')
-            plt.title(method)
+        i = 1 
+        for method in (["sobel", "Sobel"], ["canny", "Canny"], ["laplacian", "Laplacian"], ["prewitt", "Prewitt"], ["robertsCross", "RobertsCross"], ["scharr", "Scharr"]):
+            plt.subplot(2,3,i)
+            attr = getattr(alg, method[0])
+            if method[0] == 'laplacian':
+                plt.imshow(attr, cmap='gray', vmin=0, vmax=255)
+            else:
+                plt.imshow(attr, cmap='gray')
+            plt.title(method[1], fontsize=25)
             plt.axis('off')
             i += 1
 
