@@ -1,3 +1,2 @@
-ground_truth: '/home/hbm22/Pictures/HAM10000/HAM10000_metadata'
-dataset_path: '/home/hbm22/Pictures/HAM10000/'
-destination: '/home/hbm22/Pictures/HAM10000_organized/'
+images_dir: '/home/hbm22/Pictures/HAM10000_organized/'
+train_size: 100
