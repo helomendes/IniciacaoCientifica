@@ -7,7 +7,6 @@ import tensorflow as tf
 import math
 
 def main():
-    # receive the images
     parse = argparse.ArgumentParser()
     parse.add_argument('--config', help='YAML configuration file', required=True)
     args = parse.parse_args()
@@ -16,6 +15,8 @@ def main():
 
     images_dir = os.path.abspath(config.get('images_dir')) + '/'
     train_size = config.get('train_size')
+
+    images_count = len(list(glob.glob(f'{images_dir}*/*')))
 
     # 220 * 220
     # for the CNN model images are scaled to 96x96 with a depth of 3
@@ -44,9 +45,6 @@ def main():
 
     num_classes = len(val_ds.class_names)
 
-    # RGB values are [0, 255] range
-    # make your input values small
-    # standardize values to [0, 1] range
     normalization_layer = tf.keras.layers.Rescaling(1./255)
 
     AUTOTUNE = tf.data.AUTOTUNE
@@ -77,6 +75,13 @@ def main():
             validation_data = val_ds,
             epochs=3
             )
+
+    # finer control
+
+    list_ds = tf.data.Dataset.list_files(f'{images_dir}*/*', shuffle=False)
+    list_ds = list_ds.shuffle(image_count, reshuffle_each_interation=False)
+
+
 
 if __name__ == "__main__":
     main()
