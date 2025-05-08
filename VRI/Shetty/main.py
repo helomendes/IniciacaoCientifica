@@ -42,6 +42,8 @@ def main():
             image_size = (h, w),
             batch_size = batch_size)
 
+    num_classes = len(val_ds.class_names)
+
     # RGB values are [0, 255] range
     # make your input values small
     # standardize values to [0, 1] range
@@ -51,7 +53,30 @@ def main():
     train_ds = train_ds.cache().prefetch(buffer_size=AUTOTUNE)
     val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
 
-    
+    model = tf.keras.Sequential([
+        tf.keras.layers.Rescaling(1./255),
+        tf.keras.layers.Conv2D(32, 3, activation='relu'),
+        tf.keras.layers.MaxPooling2D(),
+        tf.keras.layers.Conv2D(32, 3, activation='relu'),
+        tf.keras.layers.MaxPooling2D(),
+        tf.keras.layers.Conv2D(32, 3, activation='relu'),
+        tf.keras.layers.MaxPooling2D(),
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(128, activation='relu'),
+        tf.keras.layers.Dense(num_classes)
+        ])
+
+    model.compile(
+            optimizer='adam',
+            loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+            metrics=['accuracy']
+            )
+
+    model.fit(
+            train_ds,
+            validation_data = val_ds,
+            epochs=3
+            )
 
 if __name__ == "__main__":
     main()
