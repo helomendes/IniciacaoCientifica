@@ -17,7 +17,16 @@ def main():
     images_dir = os.path.abspath(config.get('images_dir')) + '/'
     train_size = config.get('train_size')
 
-    images_count = len(list(glob.glob(f'{images_dir}*/*')))
+    image_paths = []
+    class_names = sorted([name for name in glob.glob(f'{images_dir}*/')])
+    for name in class_names:
+        ds = glob.glob(f'{name}/*')
+        selected = random.sample(ds, train_size)
+        image_paths.extend(selected)
+    random.shuffle(image_paths)
+    images_count = len(image_paths)
+
+    #images_count = len(list(glob.glob(f'{images_dir}*/*')))
 
     # 220 * 220
     # for the CNN model images are scaled to 96x96 with a depth of 3
@@ -56,14 +65,9 @@ def main():
 
     # finer control
 
-    list_ds = tf.data.Dataset.list_files(f'{images_dir}*/*', shuffle=False)
+    list_ds = tf.data.Dataset.list_files(image_paths, shuffle=False)
     list_ds = list_ds.shuffle(images_count, reshuffle_each_iteration=False)
-    class_names = np.array(sorted([item.split('/')[-1] for item in glob.glob(f'{images_dir}*')]))
-    num_classes = len(class_names)
 
-    # its counting all the images, but in this experiment we will use only 700 images from the dataset
-    # can I just adjust it to 700 instead of 10015?
-    
     val_size = int(images_count*0.2)
     train_ds = list_ds.skip(val_size)
     val_ds = list_ds.take(val_size)
