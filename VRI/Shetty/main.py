@@ -26,6 +26,8 @@ def main():
     random.shuffle(image_paths)
     images_count = len(image_paths)
 
+    num_classes = len(class_names)
+
     #images_count = len(list(glob.glob(f'{images_dir}*/*')))
 
     # 220 * 220
@@ -122,10 +124,13 @@ def main():
             )
 
     model.fit(
-            train_ds,
-            validation_data = val_ds,
+            train_ds,   # x: input data
+                        # if x is a dataset, y should not be specified since targets will be obtained from x
+            validation_data = val_ds,   # data on which to evaluate the loss and any model metrics
+                                        # the model will not be trained on this data
             epochs=3
             )
+    print(dir(model))
 
 if __name__ == "__main__":
     main()

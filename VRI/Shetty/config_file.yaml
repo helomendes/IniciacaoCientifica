@@ -1,2 +1,3 @@
 images_dir: '/home/hbm22/Datasets/HAM10000_organized/'
+dest_dir: '/home/hbm22/Results/'
 train_size: 100
