@@ -1,11 +1,13 @@
 import argparse
 import yaml
 import os
+import csv
 import glob
 import random
 import tensorflow as tf
 import math
 import numpy as np
+from datetime import datetime
 
 # NORMAL TRAINING
 '''
@@ -34,6 +36,7 @@ import numpy as np
     train_ds = train_ds.cache().prefetch(buffer_size=AUTOTUNE)
     val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
 '''
+#images_count = len(list(glob.glob(f'{images_dir}*/*')))
 
 def getDataset(images_dir, train_size):
     image_paths = []
@@ -52,10 +55,12 @@ class Model:
         # for the CNN model images are scaled to 96x96 with a depth of 3
         self.h = 220
         self.w = 220
+        self.epochs = 3
         self.AUTOTUNE = tf.data.AUTOTUNE
         self.image_paths = image_paths
         self.images_count = image_count
         self.class_names = class_names
+        self.history = None
 
     def dataset_prep(self):
         # finer control
@@ -95,27 +100,49 @@ class Model:
         self.train_ds = self.configure_for_performance(self.train_ds)
         self.val_ds = self.configure_for_performance(self.val_ds)
 
-def main():
+def getArgs():
     parse = argparse.ArgumentParser()
     parse.add_argument('--config', help='YAML configuration file', required=True)
     args = parse.parse_args()
-    with open(args.config, 'r') as file:
-        config = yaml.safe_load(file)
+    try:
+        with open(args.config, 'r') as file:
+            config = yaml.safe_load(file)
+    except Exception as ex:
+        print('Unable to open configuration file')
+        print(ex)
+        exit()
+    return config
 
-    images_dir = os.path.abspath(config.get('images_dir')) + '/'
-    train_size = config.get('train_size')
+def getOutputName(dest_dir):
+    today = datetime.today()
+    today_date = today.strftime('%Y_%m_%d')
+    today_time = today.strftime('%H_%M_%S')
 
-    image_paths, images_count, class_names = getDataset(images_dir, train_size)
-    num_classes = len(class_names)
+    dest_dir = os.path.join(dest_dir, today_date)
+    os.makedirs(dest_dir, exist_ok=True)
 
-    #images_count = len(list(glob.glob(f'{images_dir}*/*')))
+    csv_name = f'{today_time}.csv'
+    csv_output = os.path.join(dest_dir, csv_name)
 
-    modelo = Model(image_paths, images_count, class_names)
-    modelo.dataset_prep()
-    modelo.train_val()
+    return csv_output
 
-    modelo.normalization_layer = tf.keras.layers.Rescaling(1./255)
+def writeLog(modelo, dest_dir):
+    csv_output = open(getOutputName(dest_dir), 'w', newline='')
+    csv_writer = csv.writer(csv_output, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
 
+    header = ['Accuracy', 'Loss', 'Val Accuracy', 'Val Loss']
+    csv_writer = csv.DictWriter(csv_output, fieldnames=header)
+    csv_writer.writeheader()
+
+    for i in range(modelo.epochs):
+        csv_writer.writerow({
+            'Accuracy': modelo.history.history['accuracy'][i],
+            'Loss': modelo.history.history['loss'][i],
+            'Val Accuracy': modelo.history.history['val_accuracy'][i],
+            'Val Loss': modelo.history.history['val_loss'][i]
+            })
+
+def setModel(modelo):
     model = tf.keras.Sequential([
         tf.keras.layers.Rescaling(1./255),
         tf.keras.layers.Conv2D(32, 3, activation='relu'),
@@ -135,13 +162,33 @@ def main():
             metrics=['accuracy']
             )
 
-    model.fit(
+    modelo.history = model.fit(
             modelo.train_ds,   # x: input data
                         # if x is a dataset, y should not be specified since targets will be obtained from x
             validation_data = modelo.val_ds,   # data on which to evaluate the loss and any model metrics
                                         # the model will not be trained on this data
-            epochs=3
+            epochs=modelo.epochs
             )
+
+def main():
+    config = getArgs()
+
+    images_dir = os.path.abspath(config.get('images_dir')) + '/'
+    dest_dir = os.path.abspath(config.get('dest_dir')) + '/'
+    train_size = config.get('train_size')
+
+    image_paths, images_count, class_names = getDataset(images_dir, train_size)
+    num_classes = len(class_names)
+
+    modelo = Model(image_paths, images_count, class_names)
+    modelo.dataset_prep()
+    modelo.train_val()
+
+    modelo.normalization_layer = tf.keras.layers.Rescaling(1./255)
+
+    model = setModel(modelo)
+
+    writeLog(modelo, dest_dir)
 
 if __name__ == "__main__":
     main()
