@@ -1,51 +1,61 @@
+import os
+import tensorflow as tf
 from Modelo import Model
 import utils
-
-# NORMAL TRAINING
-'''
-    train_full = tf.keras.utils.image_dataset_from_directory(
-            images_dir,
-            validation_split = 0.2,
-            subset="training",
-            seed=123,
-            image_size = (h, w),
-            batch_size = batch_size)
-
-    num_batches = math.ceil(train_size/batch_size)
-    train_ds = train_full.take(num_batches)
-
-    val_ds = tf.keras.utils.image_dataset_from_directory(
-            images_dir,
-            validation_split = 0.2,
-            subset="validation",
-            seed=123,
-            image_size = (h, w),
-            batch_size = batch_size)
-
-    num_classes = len(val_ds.class_names)
-    class_names = val_ds.class_names
-
-    train_ds = train_ds.cache().prefetch(buffer_size=AUTOTUNE)
-    val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
-'''
-#images_count = len(list(glob.glob(f'{images_dir}*/*')))
 
 def main():
     config = utils.getArgs()
 
     images_dir = os.path.abspath(config.get('images_dir')) + '/'
     dest_dir = os.path.abspath(config.get('dest_dir')) + '/'
-    train_size = config.get('train_size')
+    size = config.get('size')
 
-    image_paths, class_names = utils.getDataset(images_dir, train_size)
+    train_paths, val_paths, test_paths, class_names = utils.getDataset(images_dir, size)
 
-    modelo = Model(class_names)
-    modelo.dataset_prep(image_paths)
-    modelo.train_val()
+    modelo = Model(16, 220, 220, 3, class_names)
+    modelo.dataset_prep(train_paths, val_paths, test_paths)
+    modelo.train_val_test()
 
     modelo.normalization_layer = tf.keras.layers.Rescaling(1./255)
 
-    model = utils.setModel(modelo)
+    #data_augmentation = tf.keras.Sequential([
+    #        tf.keras.layers.RandomFlip("horizontal")
+    #        #rotations, shearing
+    #        ])
+
+    model = tf.keras.Sequential([
+        #data_augmentation,
+        tf.keras.layers.Rescaling(1./255),
+        tf.keras.layers.Conv2D(16, 3, activation='relu'),
+        tf.keras.layers.MaxPooling2D(),
+        tf.keras.layers.Conv2D(16, 3, activation='relu'),
+        tf.keras.layers.MaxPooling2D(),
+        tf.keras.layers.Conv2D(16, 3, activation='relu'),
+        tf.keras.layers.MaxPooling2D(),
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(128, activation='relu'),
+        tf.keras.layers.Dense(modelo.num_classes)
+        ])
+
+    model.compile(
+            optimizer='adam',
+            loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+            metrics=[
+                'accuracy',
+                ]
+            )
+
+    print('Train')
+    modelo.history = model.fit(
+            modelo.train_ds,   # x: input data
+                        # if x is a dataset, y should not be specified since targets will be obtained from x
+            validation_data = modelo.val_ds,   # data on which to evaluate the loss and any model metrics
+                                        # the model will not be trained on this data
+            epochs=modelo.epochs
+            )
+
+    print('Test')
+    test_results = model.evaluate(modelo.test_ds)
 
     utils.writeLog(modelo, dest_dir)
 

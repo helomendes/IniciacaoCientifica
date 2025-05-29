@@ -20,6 +20,47 @@ def getArgs():
         exit()
     return config
 
+''' 
+def getDataset(images_dir, size):
+    image_paths = []
+    # full paths
+    # when it gets the label, compares to a full path
+    # they never match
+    class_names = sorted([name for name in glob.glob(f'{images_dir}*/')])
+    for name in class_names:
+        ds = glob.glob(f'{name}/*')
+        selected = random.sample(ds, size)
+        image_paths.extend(selected)
+    random.shuffle(image_paths)
+    return image_paths, class_names
+'''
+
+def getDataset(images_dir, size):
+    class_names = sorted([
+        os.path.basename(os.path.normpath(name))
+        for name in glob.glob(f'{images_dir}*/')
+        ])
+
+    n_training = int(0.8 * size)
+    n_train = int(0.8 * n_training)
+    n_val = int(0.2 * n_training)
+
+    train_paths, val_paths, test_paths = [], [], []
+
+    for name in class_names:
+        all_images = glob.glob(f'{images_dir}{name}/*')
+        selected = random.sample(all_images, size)
+
+        train_paths.extend(selected[:n_train])
+        val_paths.extend(selected[n_train:n_train+n_val])
+        test_paths.extend(selected[n_train+n_val:])
+
+    random.shuffle(train_paths)
+    random.shuffle(val_paths)
+    random.shuffle(test_paths)
+
+    return train_paths, val_paths, test_paths, class_names
+
 def getOutputName(dest_dir):
     today = datetime.today()
     today_date = today.strftime('%Y_%m_%d')
@@ -48,43 +89,3 @@ def writeLog(modelo, dest_dir):
             'Val Accuracy': modelo.history.history['val_accuracy'][i],
             'Val Loss': modelo.history.history['val_loss'][i]
             })
-
-def setModel(modelo):
-    model = tf.keras.Sequential([
-        tf.keras.layers.Rescaling(1./255),
-        tf.keras.layers.Conv2D(32, 3, activation='relu'),
-        tf.keras.layers.MaxPooling2D(),
-        tf.keras.layers.Conv2D(32, 3, activation='relu'),
-        tf.keras.layers.MaxPooling2D(),
-        tf.keras.layers.Conv2D(32, 3, activation='relu'),
-        tf.keras.layers.MaxPooling2D(),
-        tf.keras.layers.Flatten(),
-        tf.keras.layers.Dense(128, activation='relu'),
-        tf.keras.layers.Dense(modelo.num_classes)
-        ])
-
-    model.compile(
-            optimizer='adam',
-            loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-            metrics=['accuracy']
-            )
-
-    modelo.history = model.fit(
-            modelo.train_ds,   # x: input data
-                        # if x is a dataset, y should not be specified since targets will be obtained from x
-            validation_data = modelo.val_ds,   # data on which to evaluate the loss and any model metrics
-                                        # the model will not be trained on this data
-            epochs=modelo.epochs
-            )
-    return model
-
-def getDataset(images_dir, train_size):
-    image_paths = []
-    class_names = sorted([name for name in glob.glob(f'{images_dir}*/')])
-    for name in class_names:
-        ds = glob.glob(f'{name}/*')
-        selected = random.sample(ds, train_size)
-        image_paths.extend(selected)
-    random.shuffle(image_paths)
-    return image_paths, class_names
-
