@@ -73,3 +73,6 @@ class Model:
         self.val_ds = self.configure_for_performance(self.val_ds)
         self.test_ds = self.configure_for_performance(self.test_ds)
 
+    def dataAugmentation(img):
+        flip_image = tf.image.flip_left_right(img)
+        return flip_image

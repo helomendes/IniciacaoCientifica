@@ -3,6 +3,7 @@ import tensorflow as tf
 from Modelo import Model
 import utils
 
+
 def main():
     config = utils.getArgs()
 
@@ -18,13 +19,14 @@ def main():
 
     modelo.normalization_layer = tf.keras.layers.Rescaling(1./255)
 
-    #data_augmentation = tf.keras.Sequential([
-    #        tf.keras.layers.RandomFlip("horizontal")
-    #        #rotations, shearing
-    #        ])
+    data_augmentation = tf.keras.Sequential([
+        # test other rotations
+        tf.keras.layers.RandomRotation(0.2)
+        # shearing
+        ])
 
     model = tf.keras.Sequential([
-        #data_augmentation,
+        data_augmentation,
         tf.keras.layers.Rescaling(1./255),
         tf.keras.layers.Conv2D(16, 3, activation='relu'),
         tf.keras.layers.MaxPooling2D(),
