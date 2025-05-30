@@ -1,5 +1,6 @@
 import argparse
 import csv
+import json
 import os
 import yaml
 import glob
@@ -19,21 +20,6 @@ def getArgs():
         print(ex)
         exit()
     return config
-
-''' 
-def getDataset(images_dir, size):
-    image_paths = []
-    # full paths
-    # when it gets the label, compares to a full path
-    # they never match
-    class_names = sorted([name for name in glob.glob(f'{images_dir}*/')])
-    for name in class_names:
-        ds = glob.glob(f'{name}/*')
-        selected = random.sample(ds, size)
-        image_paths.extend(selected)
-    random.shuffle(image_paths)
-    return image_paths, class_names
-'''
 
 def getDataset(images_dir, size):
     class_names = sorted([
@@ -69,23 +55,34 @@ def getOutputName(dest_dir):
     dest_dir = os.path.join(dest_dir, today_date)
     os.makedirs(dest_dir, exist_ok=True)
 
-    csv_name = f'{today_time}.csv'
-    csv_output = os.path.join(dest_dir, csv_name)
+    json_name = f'{today_time}.json'
+    json_output = os.path.join(dest_dir, json_name)
 
-    return csv_output
+    return json_output
 
-def writeLog(modelo, dest_dir):
-    csv_output = open(getOutputName(dest_dir), 'w', newline='')
-    csv_writer = csv.writer(csv_output, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+def writeLog(modelo, metrics, dest_dir):
+    history = modelo.history.history
+    # maybe use a train and validation accuracy/loss mean?
+    test_list = [[metric, val] for metric, val in zip(metrics, modelo.test_results)]
 
-    header = ['Accuracy', 'Loss', 'Val Accuracy', 'Val Loss']
-    csv_writer = csv.DictWriter(csv_output, fieldnames=header)
-    csv_writer.writeheader()
-
-    for i in range(modelo.epochs):
-        csv_writer.writerow({
-            'Accuracy': modelo.history.history['accuracy'][i],
-            'Loss': modelo.history.history['loss'][i],
-            'Val Accuracy': modelo.history.history['val_accuracy'][i],
-            'Val Loss': modelo.history.history['val_loss'][i]
-            })
+    dictionary = {
+            "batch_size": modelo.batch_size,
+            "size": [modelo.h, modelo.w],
+            "epochs": modelo.epochs,
+            "train": {
+                "accuracy": history['accuracy'],
+                "loss": history['loss']
+                },
+            "val": {
+                "accuracy": history['val_accuracy'],
+                "loss": history['val_loss']
+                },
+            }
+    if "test" not in dictionary:
+        dictionary["test"] = {}
+    for item in test_list:
+        dictionary["test"][item[0]] = item[1]
+    
+    json_obj = json.dumps(dictionary, indent=4)
+    with open(getOutputName(dest_dir), 'w') as file:
+        file.write(json_obj)

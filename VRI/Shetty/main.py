@@ -1,6 +1,6 @@
 import os
 import tensorflow as tf
-from Modelo import Model
+from Model import Model
 import utils
 
 
@@ -57,9 +57,9 @@ def main():
             )
 
     print('Test')
-    test_results = model.evaluate(modelo.test_ds)
+    modelo.test_results = model.evaluate(modelo.test_ds)
 
-    utils.writeLog(modelo, dest_dir)
+    utils.writeLog(modelo, model.metrics_names, dest_dir)
 
 if __name__ == "__main__":
     main()
