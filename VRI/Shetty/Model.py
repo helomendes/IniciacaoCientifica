@@ -14,21 +14,6 @@ class Model:
         self.num_classes = len(class_names)
         self.AUTOTUNE = tf.data.AUTOTUNE
 
-    '''
-    def dataset_prep(self, image_paths):
-        # finer control
-
-        #list_ds = tf.data.Dataset.list_files(image_paths, shuffle=False)
-        list_ds = tf.data.Dataset.from_tensor_slices(image_paths)
-        list_ds = list_ds.shuffle(training_size, reshuffle_each_iteration=False)
-
-        # this is slicing from the same image_paths list
-        # the validation is just a shuffled subset of the training set, not independet
-        # the model sees the exact same images during training and validation
-        self.train_ds = list_ds.skip(val_size)
-        self.val_ds = list_ds.take(val_size)
-    '''
-
     def dataset_prep(self, train_paths, val_paths, test_paths):
         train_ds = tf.data.Dataset.from_tensor_slices(train_paths)
         val_ds = tf.data.Dataset.from_tensor_slices(val_paths)
@@ -55,7 +40,16 @@ class Model:
         label = self.get_label(file_path)
         img = tf.io.read_file(file_path)
         img = self.decode_img(img)
+
         return img, label
+
+    def duplicate_with_flips(self, ds):
+        def duplicate(img, label):
+            flipped = tf.image.flip_left_right(img)
+            return tf.data.Dataset.from_tensors((img, label)).concatenate(
+                tf.data.Dataset.from_tensors((flipped, label))
+                )
+        return ds.flat_map(duplicate)
 
     def configure_for_performance(self, ds):
         ds = ds.cache()
@@ -69,10 +63,10 @@ class Model:
         self.val_ds = self.val_ds.map(self.process_path, num_parallel_calls=self.AUTOTUNE)
         self.test_ds = self.test_ds.map(self.process_path, num_parallel_calls=self.AUTOTUNE)
 
+        self.train_ds = self.duplicate_with_flips(self.train_ds)
+        self.val_ds = self.duplicate_with_flips(self.val_ds)
+        self.test_ds = self.duplicate_with_flips(self.test_ds)
+
         self.train_ds = self.configure_for_performance(self.train_ds)
         self.val_ds = self.configure_for_performance(self.val_ds)
         self.test_ds = self.configure_for_performance(self.test_ds)
-
-    def dataAugmentation(img):
-        flip_image = tf.image.flip_left_right(img)
-        return flip_image
