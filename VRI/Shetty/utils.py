@@ -19,6 +19,7 @@ def getArgs():
         print('Unable to open configuration file')
         print(ex)
         exit()
+        
     return config
 
 def getDataset(images_dir, size):
@@ -69,6 +70,8 @@ def writeLog(modelo, metrics, dest_dir):
             "batch_size": modelo.batch_size,
             "size": [modelo.h, modelo.w],
             "epochs": modelo.epochs,
+            "learning_rate": modelo.lr,
+            "flip": modelo.flip,
             "train": {
                 "accuracy": history['accuracy'],
                 "loss": history['loss']

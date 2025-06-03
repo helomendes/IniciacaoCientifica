@@ -2,15 +2,17 @@ import tensorflow as tf
 import os
 
 class Model:
-    def __init__(self, batch_size, height, width, epochs, class_names):
+    def __init__(self, batch_size, height, width, epochs, flip, lr, class_names):
         self.batch_size = batch_size
         # 220 * 220
         # for the CNN model images are scaled to 96x96 with a depth of 3
         self.h = height
         self.w = width
         self.epochs = epochs
-        self.history = None
+        self.flip = flip
+        self.lr = lr
         self.class_names = class_names
+        self.history = None
         self.num_classes = len(class_names)
         self.AUTOTUNE = tf.data.AUTOTUNE
 
@@ -49,7 +51,10 @@ class Model:
                 num_parallel_calls=self.AUTOTUNE
                 )
         ds = ds.concatenate(flipped_ds)
-        ds = ds.shuffle(1000, reshuffle_each_iteration=False)
+        ds = ds.shuffle(
+                buffer_size = tf.data.experimental.cardinality(ds).numpy(),
+                reshuffle_each_iteration=False
+                )
         return ds
 
     def configure_for_performance(self, ds):
@@ -68,9 +73,10 @@ class Model:
         #print("Val: ", self.val_ds.cardinality().numpy())
         #print("Test: ", self.test_ds.cardinality().numpy())
 
-        self.train_ds = self.duplicate_with_flips(self.train_ds)
-        self.val_ds = self.duplicate_with_flips(self.val_ds)
-        self.test_ds = self.duplicate_with_flips(self.test_ds)
+        if self.flip:
+            self.train_ds = self.duplicate_with_flips(self.train_ds)
+            self.val_ds = self.duplicate_with_flips(self.val_ds)
+            self.test_ds = self.duplicate_with_flips(self.test_ds)
 
         #print("Train: ", self.train_ds.cardinality().numpy())
         #print("Val: ", self.val_ds.cardinality().numpy())
