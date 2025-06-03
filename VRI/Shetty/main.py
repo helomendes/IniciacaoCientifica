@@ -30,47 +30,31 @@ def main():
 
     model = tf.keras.Sequential([
         data_augmentation,
-        # 32 filters, 3x3 filter size, ReLU activation, same padding, followed by batch normalization
-        # batch normalization?
         tf.keras.layers.Conv2D(filters=32, kernel_size=3, activation='relu', padding='same'),
-        # 3x3 pool size to reduce image spatial dimensions quickly from 96x96 to 32x32
+        tf.keras.layers.BatchNormalization(),
         tf.keras.layers.MaxPool2D(pool_size=3),
-        # 0.25 Neurons
         tf.keras.layers.Dropout(rate=0.25),
-        # 64 filters, 3x3 filter size, ReLU activation, same padding
         tf.keras.layers.Conv2D(filters=64, kernel_size=3, activation='relu', padding='same'),
-        # 64 filters, 3x3 filter size, ReLU activation, following the same padding, batch normalization is performed
-        # batch normalization?
         tf.keras.layers.Conv2D(filters=64, kernel_size=3, activation='relu', padding='same'),
-        # 2x2 pool size
+        tf.keras.layers.BatchNormalization(),
         tf.keras.layers.MaxPool2D(pool_size=2),
-        # 0.25 Neurons
         tf.keras.layers.Dropout(rate=0.25),
-        # 128 filters, 3x3 filter size, ReLU activation, following the same padding, batch normalization is performed
-        # batch normalization?
         tf.keras.layers.Conv2D(filters=128, kernel_size=3, activation='relu', padding='same'),
-        # 128 filters, 3x3 filter size, ReLU activation, same padding followed by batch normalization
-        # batch normalization?
+        tf.keras.layers.BatchNormalization(),
         tf.keras.layers.Conv2D(filters=128, kernel_size=3, activation='relu', padding='same'),
-        # 2x2 pool size
+        tf.keras.layers.BatchNormalization(),
         tf.keras.layers.MaxPool2D(pool_size=2),
-        # 0.25 Neurons
         tf.keras.layers.Dropout(rate=0.25),
-        # flatten
         tf.keras.layers.Flatten(),
-        # 1024 Units, ReLU activation, and batch normalization
-        # batch normalization?
         tf.keras.layers.Dense(units=1024, activation='relu'),
-        # 0.5 Neurons
+        tf.keras.layers.BatchNormalization(),
         tf.keras.layers.Dropout(rate=0.5),
-        # 7 units, softmax activation
-        # softmax?
-        tf.keras.layers.Dense(units=modelo.num_classes)
+        tf.keras.layers.Dense(units=modelo.num_classes, activation='softmax')
         ])
 
     model.compile(
             optimizer=tf.keras.optimizers.Adam(learning_rate=modelo.lr),
-            loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+            loss=tf.keras.losses.SparseCategoricalCrossentropy(),
             metrics=[
                 'accuracy',
                 ]
@@ -78,10 +62,8 @@ def main():
 
     print('Train')
     modelo.history = model.fit(
-            modelo.train_ds,   # x: input data
-                        # if x is a dataset, y should not be specified since targets will be obtained from x
-            validation_data = modelo.val_ds,   # data on which to evaluate the loss and any model metrics
-                                        # the model will not be trained on this data
+            modelo.train_ds,
+            validation_data = modelo.val_ds,
             epochs=modelo.epochs
             )
 
