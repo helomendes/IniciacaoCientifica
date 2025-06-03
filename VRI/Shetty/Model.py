@@ -44,12 +44,13 @@ class Model:
         return img, label
 
     def duplicate_with_flips(self, ds):
-        def duplicate(img, label):
-            flipped = tf.image.flip_left_right(img)
-            return tf.data.Dataset.from_tensors((img, label)).concatenate(
-                tf.data.Dataset.from_tensors((flipped, label))
+        flipped_ds = ds.map(
+                lambda img, label: (tf.image.flip_left_right(img), label),
+                num_parallel_calls=self.AUTOTUNE
                 )
-        return ds.flat_map(duplicate)
+        ds = ds.concatenate(flipped_ds)
+        ds = ds.shuffle(1000, reshuffle_each_iteration=False)
+        return ds
 
     def configure_for_performance(self, ds):
         ds = ds.cache()
@@ -63,9 +64,17 @@ class Model:
         self.val_ds = self.val_ds.map(self.process_path, num_parallel_calls=self.AUTOTUNE)
         self.test_ds = self.test_ds.map(self.process_path, num_parallel_calls=self.AUTOTUNE)
 
+        #print("Train: ", self.train_ds.cardinality().numpy())
+        #print("Val: ", self.val_ds.cardinality().numpy())
+        #print("Test: ", self.test_ds.cardinality().numpy())
+
         self.train_ds = self.duplicate_with_flips(self.train_ds)
         self.val_ds = self.duplicate_with_flips(self.val_ds)
         self.test_ds = self.duplicate_with_flips(self.test_ds)
+
+        #print("Train: ", self.train_ds.cardinality().numpy())
+        #print("Val: ", self.val_ds.cardinality().numpy())
+        #print("Test: ", self.test_ds.cardinality().numpy())
 
         self.train_ds = self.configure_for_performance(self.train_ds)
         self.val_ds = self.configure_for_performance(self.val_ds)
