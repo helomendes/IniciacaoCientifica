@@ -1,4 +1,6 @@
 import tensorflow as tf
+import matplotlib.pyplot as plt
+import cv2 as cv
 import os
 
 class Model:
@@ -64,24 +66,33 @@ class Model:
         ds = ds.prefetch(buffer_size=self.AUTOTUNE)
         return ds
 
-    def train_val_test(self):
+    def process_datasets(self):
         self.train_ds = self.train_ds.map(self.process_path, num_parallel_calls=self.AUTOTUNE)
         self.val_ds = self.val_ds.map(self.process_path, num_parallel_calls=self.AUTOTUNE)
         self.test_ds = self.test_ds.map(self.process_path, num_parallel_calls=self.AUTOTUNE)
-
-        #print("Train: ", self.train_ds.cardinality().numpy())
-        #print("Val: ", self.val_ds.cardinality().numpy())
-        #print("Test: ", self.test_ds.cardinality().numpy())
 
         if self.flip:
             self.train_ds = self.duplicate_with_flips(self.train_ds)
             self.val_ds = self.duplicate_with_flips(self.val_ds)
             self.test_ds = self.duplicate_with_flips(self.test_ds)
 
-        #print("Train: ", self.train_ds.cardinality().numpy())
-        #print("Val: ", self.val_ds.cardinality().numpy())
-        #print("Test: ", self.test_ds.cardinality().numpy())
-
+    def configure_datasets(self):
         self.train_ds = self.configure_for_performance(self.train_ds)
         self.val_ds = self.configure_for_performance(self.val_ds)
         self.test_ds = self.configure_for_performance(self.test_ds)
+
+    def feature_extraction(self):
+        # for each (img, label)
+        # image color conversion rgb -> gray scale and rgb -> hsv
+        # for each colour space
+        # color histogram, haralick textures, hu moments
+
+        # lets start with the train dataset
+
+        for img, label in self.train_ds:
+            img_norm = tf.clip_by_value(img, 0.0, 255.0) / 255.0
+            plt.imshow(img_norm.numpy())
+            plt.axis('off')
+            plt.show()
+            #gray_scale = cv.cvtColor(img.numpy(), cv.COLOR_RGB2GRAY)
+

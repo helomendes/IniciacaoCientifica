@@ -19,7 +19,15 @@ def main():
 
     modelo = Model(batches, 220, 220, epochs, flip, lr, class_names)
     modelo.dataset_prep(train_paths, val_paths, test_paths)
-    modelo.train_val_test()
+    modelo.process_datasets()
+
+    # feature extraction
+    modelo.feature_extraction()
+
+    modelo.configure_datasets()
+
+    exit()
+    ### not yet
 
     modelo.normalization_layer = tf.keras.layers.Rescaling(1./255)
 

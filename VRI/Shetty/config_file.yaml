@@ -2,8 +2,8 @@ images_dir: '/home/hbm22/Datasets/HAM10000_organized/'
 dest_dir: '/home/hbm22/Results/Shetty/'
 size: 100
 flip: True
-epochs: 3
-# epochs: 150
+#epochs: 3
+epochs: 150
 learning_rate: 0.001
 # lr: 0.001 - 0.00001
 batch_size: 32
