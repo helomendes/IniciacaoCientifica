@@ -90,9 +90,58 @@ class Model:
         # lets start with the train dataset
 
         for img, label in self.train_ds:
+            r, g, b = tf.unstack(img.numpy(), axis=-1)
+            r_hist = tf.histogram_fixed_width(tf.reshape(r, [-1]), [0,255], nbins=256)
+            g_hist = tf.histogram_fixed_width(tf.reshape(g, [-1]), [0,255], nbins=256)
+            b_hist = tf.histogram_fixed_width(tf.reshape(b, [-1]), [0,255], nbins=256)
+
+            gray = cv.cvtColor(img.numpy(), cv.COLOR_RGB2GRAY)
+            gray_hist = tf.histogram_fixed_width(tf.reshape(gray, [-1]), [0, 256], nbins = 256)
+
+            hsv = cv.cvtColor(img.numpy(), cv.COLOR_RGB2HSV)
+            h, s, v = tf.unstack(hsv, axis=-1)
+            h_hist = tf.histogram_fixed_width(tf.reshape(h, [-1]), [0,255], nbins=256)
+
+            '''
+            fig = plt.figure(figsize=(15,10))
+
             img_norm = tf.clip_by_value(img, 0.0, 255.0) / 255.0
+            fig.add_subplot(3, 2, 1)
             plt.imshow(img_norm.numpy())
             plt.axis('off')
+            plt.title('RGB')
+
+            fig.add_subplot(3, 2, 2)
+            plt.plot(r_hist.numpy(), color='red', label='Red')
+            plt.plot(g_hist.numpy(), color='green', label='Green')
+            plt.plot(b_hist.numpy(), color='blue', label='Blue')
+            plt.title('RGB Histogram')
+            plt.xlabel('Pixel Intensity')
+            plt.ylabel('Frequency')
+
+            fig.add_subplot(3, 2, 3)
+            plt.imshow(gray, cmap='gray')
+            plt.axis('off')
+            plt.title('Gray')
+
+            fig.add_subplot(3, 2, 4)
+            plt.bar(range(256), gray_hist.numpy(), width=1.0, color='gray')
+            plt.title('Gray Histogram')
+            plt.xlabel('Pixel Intensity')
+            plt.ylabel('Frequency')
+
+            fig.add_subplot(3, 2, 5)
+            plt.imshow(hsv)
+            plt.axis('off')
+            plt.title('HSV')
+
+            fig.add_subplot(3, 2, 6)
+            plt.plot(h_hist.numpy())
+            plt.title('RGB Histogram')
+            plt.xlabel('Pixel Intensity')
+            plt.ylabel('Frequency')
+
+            plt.legend()
             plt.show()
-            #gray_scale = cv.cvtColor(img.numpy(), cv.COLOR_RGB2GRAY)
+            '''
 
