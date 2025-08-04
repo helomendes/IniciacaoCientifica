@@ -102,6 +102,9 @@ class Model:
             h, s, v = tf.unstack(hsv, axis=-1)
             h_hist = tf.histogram_fixed_width(tf.reshape(h, [-1]), [0,255], nbins=256)
 
+            # é pra gray scale e hsv só?
+
+
             '''
             fig = plt.figure(figsize=(15,10))
 
